@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bike Share — Storyboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/snowpact/html-flow-board@v0.6.0/flowboard.css">
+  <script src="https://cdn.jsdelivr.net/gh/snowpact/html-flow-board@v0.6.0/flowboard.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+FlowBoard.init({
+  container: '#app',
+  project: {
+    name: `Bike Share`,
+    epics: [
+      { id: 'onboarding', label: `Sign up`,     color: '#6366f1' },
+      { id: 'ride',       label: `Take a ride`, color: '#2a9d8f' },
+      { id: 'account',    label: `Account`,     color: '#e76f51' },
+    ],
+    screens: [
+      { id: 'welcome', title: `Welcome`, epic: 'onboarding', format: 'phone', notes: `First launch`,
+        content: `<div style="padding:14px">
+          <div class="fb-img" style="height:120px"></div>
+          <div class="fb-text title fb-mt-8">Ride across town</div>
+          <div class="fb-text small muted">Unlock a bike in seconds, pay by the minute.</div>
+          <div class="fb-btn fb-mt-8" style="width:100%">Get started</div>
+          <div class="fb-btn outline fb-mt-4" style="width:100%">I already have an account</div>
+        </div>` },
+      { id: 'signup', title: `Create account`, epic: 'onboarding', format: 'phone',
+        content: `<div style="padding:14px">
+          <div class="fb-text title" style="margin-bottom:8px">Create your account</div>
+          <div class="fb-text small muted">Email</div><div class="fb-input">alex@example.com</div>
+          <div class="fb-text small muted fb-mt-4">Phone</div><div class="fb-input">+1 555 0100</div>
+          <div class="fb-text small muted fb-mt-4">Payment card</div><div class="fb-input">•••• 4242</div>
+          <div class="fb-sep"></div><div class="fb-btn" style="width:100%">Continue</div>
+        </div>` },
+      { id: 'map', title: `Map`, epic: 'ride', epics: ['ride', 'account'], format: 'phone', notes: `Home screen`,
+        content: `<div style="padding:10px">
+          <div class="fb-input">Search a station</div>
+          <div class="fb-img fb-mt-8" style="height:190px"></div>
+          <div class="fb-card fb-mt-8"><div class="fb-row spread"><div><div class="fb-text">Central Station</div>
+          <div class="fb-text small muted">6 bikes · 2 min walk</div></div><span class="fb-badge green">Open</span></div></div>
+          <div class="fb-btn fb-mt-8" style="width:100%">Scan to unlock</div>
+        </div>` },
+      { id: 'scan', title: `Scan QR code`, epic: 'ride', format: 'phone', preset: 'gallery' },
+      { id: 'riding', title: `Ride in progress`, epic: 'ride', format: 'phone',
+        content: `<div style="padding:14px">
+          <div class="fb-row spread"><div class="fb-stat-card"><div class="value">12:40</div><div class="label">Time</div></div>
+          <div class="fb-stat-card"><div class="value">$1.90</div><div class="label">So far</div></div></div>
+          <div class="fb-img fb-mt-8" style="height:150px"></div>
+          <div class="fb-btn danger fb-mt-8" style="width:100%">End ride</div>
+        </div>` },
+      { id: 'receipt', title: `Ride summary`, epic: 'ride', format: 'phone', preset: 'detail', notes: `Receipt also sent by email` },
+      { id: 'profile', title: `Profile`, epic: 'account', format: 'phone', preset: 'settings' },
+      { id: 'history', title: `Ride history`, epic: 'account', format: 'phone', preset: 'list' },
+    ],
+    arrows: [
+      { from: 'welcome', to: 'signup',  label: `Start sign up`, kind: 'main' },
+      { from: 'signup',  to: 'map',     label: `Account created, land on the map`, kind: 'main' },
+      { from: 'welcome', to: 'map',     label: `Log in`, dashed: true },
+      { from: 'map',     to: 'scan',    label: `Pick a bike and scan it`, kind: 'main' },
+      { from: 'scan',    to: 'riding',  label: `Bike unlocked`, kind: 'main', detail: `POST /rides`, color: 'teal' },
+      { from: 'riding',  to: 'receipt', label: `Dock the bike to end the ride`, kind: 'main', detail: `PATCH /rides/:id · charge card`, color: 'amber' },
+      { from: 'map',     to: 'profile', label: `Open profile`, kind: 'nav' },
+      { from: 'profile', to: 'history', label: `See past rides`, kind: 'main' },
+      { from: 'receipt', to: 'map',     label: `Back to map`, kind: 'nav' },
+    ],
+  },
+});
+</script>
+</body>
+</html>

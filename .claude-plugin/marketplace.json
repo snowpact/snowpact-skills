@@ -1,0 +1,22 @@
+{
+  "name": "snowpact-skills",
+  "owner": {
+    "name": "Snowpact",
+    "url": "https://github.com/snowpact"
+  },
+  "metadata": {
+    "description": "The agent skills we use the most at Snowpact."
+  },
+  "plugins": [
+    {
+      "name": "snowpact-skills",
+      "description": "Flowboard storyboards and clickable design prototypes.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/flowboard",
+        "./skills/design-prototype"
+      ]
+    }
+  ]
+}
