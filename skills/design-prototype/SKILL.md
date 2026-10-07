@@ -53,53 +53,89 @@ Always these three parts, in this order:
   already exists must **not** be presented as new.
 - List reusable components: they're what makes the plan credible ("we reuse form X and drop one").
 
-### 2. Start from the existing styles
+### 2. Know the layout
 
-Never redraw the application. If the project already has a design prototype, extract its
-stylesheet and assets (logos, photos, maps as data URIs) and reuse them. Otherwise, copy the
-app's design tokens (colours, fonts, radii, spacing) into the prototype's `<style>`.
+The engine is [html-design-proto](https://github.com/snowpact/html-design-proto): it draws the
+shell (tabs, narration, keyboard, browser and phone frames, CURRENT/NEW tags, batch colours) and
+the slide blocks. You write the screens and the story, never the shell.
 
-```bash
-# Example: extract the <style> block and the inlined assets line from an earlier prototype
-python3 - <<'EOF'
-lines = open('docs/features/previous-prototype.html', encoding='utf-8').read().split('\n')
-end = next(i for i, l in enumerate(lines) if l.strip() == '</style>')
-open('/tmp/parts_css.txt', 'w').write('\n'.join(lines[lines.index('<style>') + 1:end]))
-open('/tmp/parts_assets.txt', 'w').write(
-    next(l for l in lines if l.startswith('<script>const ASSETS'))[8:].replace('</script>', ''))
-EOF
+```
+docs/features/
+  _kit/                     shared by every prototype of the project
+    app.css                 the app's look, reproduced once
+    screens.js              screens and data used by two prototypes or more
+    assets.js               const ASSETS = { logo: "data:image/png;base64,…" }
+  <topic>/
+    prototype.scenario.js   screens specific to this prototype + DesignProto.init({...})
+    prototype.html          GENERATED — never edit it
 ```
 
-### 3. Assemble with a script, never by hand
+**No `_kit/` yet?** Create it first: `app.css` from the app's real tokens and components
+(colours, fonts, radii, spacing — never redraw the app from memory), and `assets.js` with the
+logos and photos you need. Leave `screens.js` empty: screens stay in the scenario until a
+**second** prototype needs one, then move it to `screens.js`.
 
-With inlined assets the file easily reaches several hundred KB, so build it from parts — base CSS,
-`extra.css` (presentation-only additions), assets, and the rendering JS. Check the JS **before**
-assembling:
+**`_kit/` exists?** Read `screens.js` to see what you can reuse, and only read the parts of
+`app.css` you need. Don't open `assets.js` (it's all base64): grep its keys.
 
-```bash
-node --check /tmp/body.js
+### 3. Write the scenario
+
+```js
+DesignProto.init({
+  lang: "fr",                                   // or "en": built-in labels
+  title: "Signaleo — la mairie informe",
+  url: "app.example.com",
+  links: [{ label: "Le cadrage", href: "<topic>.md" }],
+  lots: [{ id: 1, label: "suivre" }, { id: 2, label: "notifications" }, { id: "later", label: "Plus tard" }],
+  scenarios: [
+    { tab: "Le problème", steps: [
+      { kicker: "Le problème", title: "…", text: "Two sentences.", slide: () => DesignProto.board(title, lead,
+          DesignProto.flow([{ title, text, kind: "ko" }]), DesignProto.cards([{ title, tag, items, win }])) },
+    ] },
+    { tab: "L'application", persona: { name: "Léa Fontaine", role: "habitante", color: "#d1345b" }, steps: [
+      { kicker: "Aujourd'hui", title: "…", text: "…", tag: "now", phones: [homeScreen()] },
+      { kicker: "Lot 1", lot: 1, title: "…", text: "…", tag: "new",
+        phones: [{ html: homeScreen(), tag: "now", caption: "Avant" }, { html: homeScreen({ follow: true }), tag: "new", highlight: true, lot: 1 }],
+        phonesOptions: { arrows: true } },
+      { kicker: "Lot 1", lot: 1, title: "…", text: "…", tag: "new", url: "back-office.example.com/issues", screen: () => boIssue() },
+    ] },
+    { tab: "Les décisions", steps: [ { kicker: "Décisions", title: "…", text: "…", slide: () => DesignProto.board(…,
+        DesignProto.cards([{ title, tag: DesignProto.yes("reco"), pros: [], cons: [], win: true }]), DesignProto.verdict("…")) } ] },
+  ],
+});
 ```
 
-### 4. Layout
+- A step shows **one** of: `screen` (browser window, HTML or function), `phones` (1 to 4 phones in
+  the window), `slide` (full page). `tag: "now" | "new"` labels the window; `lot` colours the kicker.
+- A phone is an HTML string or `{ html, tabBar, device: "ios" | "android", time, dark, bg, caption,
+  tag, highlight, lot, scale }`.
+- Slide blocks: `board`, `flow`, `cards` (pros/cons, `win` = recommended), `table`, `verdict`,
+  `lots`, and the pills `state("ok" | "todo" | "warn", label)`, `yes`, `no`, `mark()`, `lotChip(id)`.
+  Mix them with your own HTML when a slide needs something else.
+- Inside your screens, mark new parts with the `dp-new` class (dashed outline in the batch colour)
+  and `DesignProto.mark()` (NEW pill). Engine classes all start with `dp-`: never reuse that prefix
+  in `app.css`.
+- Screens are plain functions returning HTML strings: `const issueCard = (o = {}) => \`…\``.
+  Wrap human text in backticks (apostrophes are everywhere in French).
 
-- **Top bar**: title + a PROTOTYPE pill + one tab per scenario (with its status: shipped, batch N,
-  exists).
-- **Stage**: a browser window (URL bar, traffic lights) or phone frames, with the app screen
-  inside — or a full-page slide for the problem and the choices.
-- **Bottom bar**: Previous / Next, the step title, two sentences of narration, progress dots.
-  ← → keyboard arrows.
-- **A label on every screen**: `CURRENT` (grey) or `NEW` (bright pink), top right of the window.
-  It stops the "what are we looking at here?" question on every slide.
-- Mark new **details** inside the screen too: a small "batch 2" pill next to the added field or
-  column, a dashed pink outline around the new block.
+### 4. Build
+
+```bash
+npx -y github:snowpact/html-design-proto build docs/features/<topic>/prototype.scenario.js
+```
+
+It finds `_kit/`, inlines it with the scenario into one standalone `prototype.html`, loads the
+engine from jsDelivr pinned to a version, and fails on any syntax error. Never edit the HTML:
+edit the sources and build again.
 
 ### 5. Check it in a browser
 
 Open the file, go through **every** step of every tab, check that none is empty and the console is
-clean, then take 3–4 representative screenshots.
+clean, then take 3–4 representative screenshots. `#2.3` in the URL opens scenario 3, step 4.
 
 ```js
-for (let sc = 0; sc < N; sc++) { /* click the tab, then each dot, check .window is filled */ }
+// in the page: walk every step
+for (let sc = 0; sc < N; sc++) for (let st = 0; st < steps[sc]; st++) { DesignProto.goTo(sc, st); /* check .dp-window */ }
 ```
 
 ## Content rules
@@ -117,8 +153,9 @@ for (let sc = 0; sc < N; sc++) { /* click the tab, then each dot, check .window 
 
 ## Deliverables
 
-1. `docs/features/<topic>.html` — the presentation.
-2. `docs/features/<topic>.md` — the scoping note: numbered decisions (`D1`, `D2`…), impacts
+1. `docs/features/<topic>/prototype.scenario.js` and the generated `prototype.html` — the
+   presentation (plus any screen moved into `_kit/screens.js`).
+2. `docs/features/<topic>/<topic>.md` — the scoping note: numbered decisions (`D1`, `D2`…), impacts
    (`I1`, `I2`…) with where they live in the code, a plan split into batches, open questions.
    The HTML shows, the `.md` decides and gets quoted in meetings.
 
@@ -126,13 +163,10 @@ The two mirror each other: every NEW step in the HTML maps to a batch in the `.m
 
 ## Pitfalls we hit
 
-- **Never nest `<script>` tags**: an extracted assets line may already contain its own tag — strip
-  it before inserting.
-- **Computing replacement offsets before injecting CSS** breaks the slicing: replace from the last
-  position to the first, or re-read the file between passes.
-- **`[hidden]` loses against a class that sets `display`**: add `[hidden] { display: none !important; }`.
 - **A tooltip inside a scrolling container gets clipped**: open it downwards, not upwards.
-- **Mermaid from a CDN doesn't work offline**: for a simple diagram, use HTML/CSS (chips + arrows),
+- **Mermaid from a CDN is fragile**: for a simple diagram, use `DesignProto.flow` or HTML/CSS,
   which always renders and matches the app's look.
 - **A disabled button with a tooltip** is a bad pattern: prefer an active button that opens an
   empty state explaining what to do.
+- **Screens built before `init()` are fine**, but don't read `DesignProto.position` there: it
+  only exists once the page renders.

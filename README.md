@@ -55,6 +55,8 @@ Builds a clickable presentation, again in a single HTML file, that replays the r
 
 The agent reads your code first and uses the app's real labels and styles, so you end up discussing your actual product instead of a generic wireframe. It also writes a short `.md` scoping note to go with the prototype.
 
+The presentation itself (tabs, narration, phone and browser frames, slides) comes from our [html-design-proto](https://github.com/snowpact/html-design-proto) engine. The agent only writes a short scenario file, and your app's styles live in a shared `_kit/` folder that every prototype reuses.
+
 > "Make a design prototype showing how residents would follow their town hall's news in the app."
 
 ![A design prototype walkthrough](docs/screenshots/prototype-journey.png)
