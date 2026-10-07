@@ -60,23 +60,36 @@ shell (tabs, narration, keyboard, browser and phone frames, CURRENT/NEW tags, ba
 the slide blocks. You write the screens and the story, never the shell.
 
 ```
-docs/features/
-  _kit/                     shared by every prototype of the project
-    app.css                 the app's look, reproduced once
-    screens.js              screens and data used by two prototypes or more
-    assets.js               const ASSETS = { logo: "data:image/png;base64,…" }
+<prototypes root>/              e.g. docs/features/, docs/prototypes/
+  _kit/                         shared by every prototype of the project
+    app.css                     the app's look, reproduced once
+    screens.js                  screens and data used by two prototypes or more
+    assets.js                   const ASSETS = { logo: "data:image/png;base64,…" }
   <topic>/
-    prototype.scenario.js   screens specific to this prototype + DesignProto.init({...})
-    prototype.html          GENERATED — never edit it
+    prototype.scenario.js       screens specific to this prototype + DesignProto.init({...})
+    prototype.html              GENERATED — never edit it
+    <topic>.md                  the scoping note
 ```
 
-**No `_kit/` yet?** Create it first: `app.css` from the app's real tokens and components
-(colours, fonts, radii, spacing — never redraw the app from memory), and `assets.js` with the
-logos and photos you need. Leave `screens.js` empty: screens stay in the scenario until a
-**second** prototype needs one, then move it to `screens.js`.
+**Find the prototypes root first:**
 
-**`_kit/` exists?** Read `screens.js` to see what you can reuse, and only read the parts of
-`app.css` you need. Don't open `assets.js` (it's all base64): grep its keys.
+```bash
+find . -type d -name _kit -not -path '*/node_modules/*' -not -path '*/.git/*'
+```
+
+- **A `_kit/` exists**: its parent is the root. Don't ask, put the new prototype next to the others.
+  Read `screens.js` to see what you can reuse, and only the parts of `app.css` you need. Don't
+  open `assets.js` (it's all base64): grep its keys.
+- **No `_kit/` yet**: ask the user where prototypes should live, in one question. Offer the folder
+  where the project already keeps its specs or epics if there is one (`docs/features/`,
+  `docs/specs/`, `specs/`…), and `docs/prototypes/` as the default. If they don't answer or you
+  can't ask, use `docs/prototypes/`. Then create the kit there: `app.css` from the app's real
+  tokens and components (colours, fonts, radii, spacing — never redraw the app from memory), and
+  `assets.js` with the logos and photos you need. Leave `screens.js` empty: screens stay in the
+  scenario until a **second** prototype needs one, then move it to `screens.js`.
+
+The build finds `_kit/` by walking up from the scenario, so the kit must sit at the root, above
+every `<topic>/` folder.
 
 ### 3. Write the scenario
 
@@ -121,7 +134,7 @@ DesignProto.init({
 ### 4. Build
 
 ```bash
-npx -y github:snowpact/html-design-proto build docs/features/<topic>/prototype.scenario.js
+npx -y github:snowpact/html-design-proto build <prototypes root>/<topic>/prototype.scenario.js
 ```
 
 It finds `_kit/`, inlines it with the scenario into one standalone `prototype.html`, loads the
@@ -153,9 +166,9 @@ for (let sc = 0; sc < N; sc++) for (let st = 0; st < steps[sc]; st++) { DesignPr
 
 ## Deliverables
 
-1. `docs/features/<topic>/prototype.scenario.js` and the generated `prototype.html` — the
+1. `<prototypes root>/<topic>/prototype.scenario.js` and the generated `prototype.html` — the
    presentation (plus any screen moved into `_kit/screens.js`).
-2. `docs/features/<topic>/<topic>.md` — the scoping note: numbered decisions (`D1`, `D2`…), impacts
+2. `<prototypes root>/<topic>/<topic>.md` — the scoping note: numbered decisions (`D1`, `D2`…), impacts
    (`I1`, `I2`…) with where they live in the code, a plan split into batches, open questions.
    The HTML shows, the `.md` decides and gets quoted in meetings.
 
