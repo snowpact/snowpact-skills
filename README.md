@@ -1,6 +1,6 @@
 # Snowpact skills
 
-These are the agent skills we reach for most often at [Snowpact](https://github.com/snowpact). Both help us show a product idea before anyone writes code. They work with Claude Code, Codex, Cursor, and any other agent that reads `SKILL.md` files.
+These are the agent skills we reach for most often at [Snowpact](https://github.com/snowpact). Two help us show a product idea before anyone writes code; the third makes the videos that explain it. They work with Claude Code, Codex, Cursor, and any other agent that reads `SKILL.md` files.
 
 ## Install
 
@@ -62,6 +62,14 @@ The presentation itself (tabs, narration, phone and browser frames, slides) come
 ![A design prototype walkthrough](docs/screenshots/prototype-journey.png)
 
 *From one of our real projects. The product name has been swapped out and the people and town are made up.*
+
+### video
+
+Produces videos end to end: vertical motion design shorts (Shorts, Reels, TikTok) and long YouTube explainers. The agent works one step at a time and asks for approval at each gate: framing, the sourced facts, the script (shown in full before any voice is generated), the voice, a contact sheet of key frames, then the render. Animation is HTML and GSAP rendered by [HyperFrames](https://hyperframes.heygen.com), the voice comes from ElevenLabs with word-level timings that drive every cue, and illustrations come from an image generator held to a fixed style sheet and a character reference.
+
+It bundles what we learned producing a real series: every figure sourced and tagged as published, calculated or assumed, hooks in the first second, a logo held on the last frame so the loop doesn't swallow the call to action, a recurring character and a visual landmark to keep viewers through a long video, and the traps of word cues, transcription checks and scheduling tools. A few small scripts come with it (voice takes, transcription check, cue check, contact sheet).
+
+> "Make a 25-second vertical short explaining why a pothole costs more the longer it waits."
 
 ## Contributing
 

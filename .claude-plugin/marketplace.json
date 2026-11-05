@@ -10,12 +10,13 @@
   "plugins": [
     {
       "name": "snowpact-skills",
-      "description": "Flowboard storyboards and clickable design prototypes.",
+      "description": "Flowboard storyboards, clickable design prototypes and sourced motion design videos.",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/flowboard",
-        "./skills/design-prototype"
+        "./skills/design-prototype",
+        "./skills/video"
       ]
     }
   ]
